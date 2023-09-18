@@ -1,8 +1,7 @@
 #include "Keyboard.h"
 
-#define ZERO_PIN 4
-#define ONE_PIN 7
-#define ENTER_PIN 16
+#define ZERO_PIN 7
+#define ONE_PIN 4
 
 int prevZeroPressed, prevOnePressed = HIGH;
 
