@@ -1,7 +1,7 @@
 #include "Keyboard.h"
 #include <stdint.h>
 
-#define ZERO_PIN 7
+#define ZERO_PIN 6 //Prototype uses 7
 #define ONE_PIN 4
 
 int prevZeroPressed, prevOnePressed = HIGH;
@@ -11,16 +11,24 @@ uint8_t buffer = 0;
 void keyboardFSM();
 void easyKeyboard();
 
+void (*modePtr)();
+
 void setup() {
   Serial.begin(9600);
   Keyboard.begin();
   pinMode(ZERO_PIN, INPUT_PULLUP);
   pinMode(ONE_PIN, INPUT_PULLUP);
+
+  if(digitalRead(ZERO_PIN) && digitalRead(ONE_PIN)){
+    modePtr = &keyboardFSM;
+  } else {
+    modePtr = &easyKeyboard;
+  }
 }
 
 // TODO: FSM
 void loop() {
-  keyboardFSM();
+  modePtr();
 }
 
 void keyboardFSM(){
@@ -35,14 +43,20 @@ void keyboardFSM(){
       buffer = 0;
       break;
     case WAIT_FOR_RELEASE:
-      if(digitalRead(ZERO_PIN) == LOW || digitalRead(ONE_PIN) == LOW) {
+      if(digitalRead(ZERO_PIN) == LOW && digitalRead(ONE_PIN) == LOW) {
+        state = CLEAR;
+      } else if(digitalRead(ZERO_PIN) == LOW || digitalRead(ONE_PIN) == LOW) {
         state = WAIT_FOR_RELEASE;
       } else {
         state = WAIT;
       }
       break;
     case WAIT:
-      if(digitalRead(ZERO_PIN) == LOW) {
+      delay(50);
+      
+      if(digitalRead(ZERO_PIN) == LOW && digitalRead(ONE_PIN) == LOW) {
+        state = CLEAR;
+      } else if(digitalRead(ZERO_PIN) == LOW) {
         state = ADD_ZERO;
       } else if(digitalRead(ONE_PIN) == LOW) {
         state = ADD_ONE;
